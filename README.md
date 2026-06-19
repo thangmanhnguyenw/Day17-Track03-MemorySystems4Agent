@@ -90,3 +90,63 @@ Nếu các bạn là giảng viên hoặc reviewer:
 - `Rubric.md`: tiêu chí chấm điểm và bonus
 
 Track này được thiết kế để các bạn không chỉ “dùng agent”, mà còn bắt đầu nghĩ như một người thiết kế **memory system** cho agent production.
+
+## Chạy benchmark — có cần API không?
+
+Benchmark và pytest mặc định dùng `AGENT_MODE=offline` (không cần API).
+
+| `AGENT_MODE` | Hành vi |
+|---|---|
+| `offline` | Deterministic, không gọi LLM (mặc định) |
+| `live` | Gọi Gemini qua LangChain |
+| `auto` | Live nếu có API key, không thì offline |
+
+Demo chat live:
+
+```powershell
+cd src
+$env:AGENT_MODE='live'
+..\.venv\Scripts\python.exe chat_live.py
+```
+
+### Cấu hình Gemini (`gemini-3.1-flash-lite`)
+
+1. Vào [Google AI Studio → API Keys](https://aistudio.google.com/apikey) và tạo key.
+2. Ở **root repo** (cùng cấp với `Guide.md`), tạo file `.env`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+3. Mở `.env`, dán key vào:
+
+```env
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-3.1-flash-lite
+GEMINI_API_KEY=AIza...your_key...
+```
+
+4. Kiểm tra kết nối:
+
+```powershell
+cd src
+..\.venv\Scripts\python.exe -c "from pathlib import Path; from config import load_config; from model_provider import build_chat_model; c=load_config(Path('..').resolve()); m=build_chat_model(c.model); print(m.invoke('Xin chao').content)"
+```
+
+**Lưu ý:** File `.env` đã nằm trong `.gitignore` — không commit key lên git.
+
+Xem thêm phân tích trade-off và bonus features trong `ANALYSIS.md`.
+
+## Dashboard trực quan (UI demo)
+
+```powershell
+cd src
+..\.venv\Scripts\streamlit.exe run demo_ui.py
+```
+
+Mở trình duyệt tại `http://localhost:8501`. UI gồm 4 tab:
+
+1. **Tổng quan** — sơ đồ Baseline vs Advanced
+2. **So sánh Chat** — gửi tin nhắn, xem User.md / compact realtime
+3. **Playback Data** — từng lượt trong `conversations.json` / stress JSON
+4. **Benchmark** — chạy và xem report

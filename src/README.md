@@ -17,3 +17,19 @@ Suggested flow:
 6. Make `test_agents.py` pass
 
 Datasets are available at the repo root in `data/`.
+
+## Runtime modes
+
+| Mode | API key | Command |
+|---|---|---|
+| Offline benchmark / tests | **Not required** | `AGENT_MODE=offline` (default) |
+| Live Gemini chat | `GEMINI_API_KEY` in `.env` | `AGENT_MODE=live` + `python chat_live.py` |
+| Auto | Uses live if key exists | `AGENT_MODE=auto` |
+
+Bonus guardrails implemented: confidence threshold, conflict handling, memory decay. See `../ANALYSIS.md`.
+
+## Visual demo UI
+
+```powershell
+..\.venv\Scripts\streamlit.exe run demo_ui.py
+```

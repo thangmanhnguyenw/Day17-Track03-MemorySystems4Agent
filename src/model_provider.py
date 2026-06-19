@@ -23,10 +23,24 @@ class ProviderConfig:
     base_url: str | None = None
 
 
+_PROVIDER_ALIASES = {
+    "openai": "openai",
+    "custom": "custom",
+    "gemini": "gemini",
+    "google": "gemini",
+    "anthropic": "anthropic",
+    "anthorpic": "anthropic",
+    "claude": "anthropic",
+    "ollama": "ollama",
+    "openrouter": "openrouter",
+}
+
+
 def normalize_provider(value: str) -> str:
     """Student TODO: map aliases like `anthorpic` -> `anthropic`."""
 
-    raise NotImplementedError
+    normalized = (value or "openai").strip().lower()
+    return _PROVIDER_ALIASES.get(normalized, normalized)
 
 
 def build_chat_model(config: ProviderConfig):
@@ -41,4 +55,44 @@ def build_chat_model(config: ProviderConfig):
     - `openrouter` -> `ChatOpenRouter`
     """
 
-    raise NotImplementedError
+    provider = normalize_provider(config.provider)
+    kwargs = {
+        "model": config.model_name,
+        "temperature": config.temperature,
+    }
+
+    if provider == "openai":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(api_key=config.api_key, **kwargs)
+
+    if provider == "custom":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            api_key=config.api_key or "not-needed",
+            base_url=config.base_url,
+            **kwargs,
+        )
+
+    if provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
+        return ChatGoogleGenerativeAI(google_api_key=config.api_key, **kwargs)
+
+    if provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+
+        return ChatAnthropic(api_key=config.api_key, **kwargs)
+
+    if provider == "ollama":
+        from langchain_ollama import ChatOllama
+
+        return ChatOllama(base_url=config.base_url, **kwargs)
+
+    if provider == "openrouter":
+        from langchain_openrouter import ChatOpenRouter
+
+        return ChatOpenRouter(api_key=config.api_key, **kwargs)
+
+    raise ValueError(f"Unsupported provider: {config.provider}")
